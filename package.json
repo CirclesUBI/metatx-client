@@ -1,5 +1,5 @@
 {
-  "name": "metatx",
+  "name": "metatx-client",
   "version": "1.0.0",
   "description": "A frontend utility to generate a meta tx hash on a client device",
   "main": "index.js",
