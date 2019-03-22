@@ -18,15 +18,16 @@ export default class MetaTx {
     this.relayFnName = relayFnName
     this.whitelistAddress = whitelistAddress
     this.relayContract = new ethers.Contract(relayAddress, relayABI, provider)
+    this.testing = 'hello'
   }
 
   async _getNonce (senderAddress) {
     return ethers.utils.hexlify(await this.relayContract.getNonce(senderAddress))
   }
 
-  async _generateRelayContractTx (userAddress, destination, data, relayNonce) {
+  _generateRelayContractTx (userAddress, destination, data, relayNonce) {
     // Tight packing, as Solidity sha3 does
-    let hashInput = '0x1900' + utilities.strip0x(this.relayContractAdress) +
+    let hashInput = '0x1900' + utilities.strip0x(this.relayAddress) +
       utilities.strip0x(this.whitelistAddress) + utilities.pad(relayNonce) + utilities.strip0x(destination) + utilities.strip0x(data)
     return ethers.utils.keccak256(hashInput)
   }
@@ -65,7 +66,7 @@ export default class MetaTx {
     return dataHex
   }
 
-  _generateMetaTxData (
+  async _generateMetaTxData (
     keyPair,
     to,
     data,
@@ -95,10 +96,10 @@ export default class MetaTx {
   // keyPair is an object with keys of (privateKey, publicKey, address)
   // to is the address of the contract being sent the parsed metaTx
   // data is the tx data to include in the fn call to the destination contract
-  async generataMetaTx (keyPair, to, data) {
+  async generateMetaTxHash (keyPair, to, data) {
     let relayNonce = await this._getNonce(keyPair.address)
-    let txData = this._generateMetaTxData(keyPair, to, data, relayNonce)
-    let txObject = this._generateMetaTxObject(txData, relayNonce)
+    let txData = await this._generateMetaTxData(keyPair, to, data, relayNonce)
+    let txObject = await this._generateMetaTxObject(txData, relayNonce)
     return ethers.utils.serializeTransaction(txObject)
   }
 }
